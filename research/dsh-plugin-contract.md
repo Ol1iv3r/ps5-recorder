@@ -809,7 +809,7 @@ A plugin prefix route is served **without** the page's auth cookie (`200` vs `40
 ### 10.1 Install a local directory
 
 ```js
-plugin_manager({ action: 'install_bundle', target: '/Users/oliverli/Desktop/DeepSeek/PS5录制上传方案/ps5-recorder' })
+plugin_manager({ action: 'install_bundle', target: '<仓库绝对路径>/ps5-recorder' })
 ```
 
 * `target` is the **absolute package directory** (the installation spec form), not the npm name

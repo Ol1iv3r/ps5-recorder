@@ -55,19 +55,20 @@ window.__ModuleLoader__.load({
         'action.connectYouTube': '连接 YouTube',
         'action.disconnect': '断开',
         'action.retry': '重试',
-        'action.uploadNow': '立即上传',
+        'action.uploadNow': '确认上传',
         'action.remove': '移除',
         'action.cancelUpload': '取消上传',
         'action.reveal': '在 Finder 中显示',
         'action.loadPlaylists': '加载播放列表',
         'queue.empty': '还没有录好的视频。停止录制后，成片会出现在这里。',
         'queue.finalizing': '正在整理文件',
-        'queue.queued': '等待上传',
+        'queue.queued': '待确认上传',
         'queue.uploading': '上传中',
         'queue.done': '已上传',
         'queue.error': '失败',
         'queue.canceled': '已取消',
         'queue.openOnYouTube': '在 YouTube 打开',
+        'queue.openInStudio': '在 Studio 打开',
         'setting.upload': '上传',
         'setting.obs': '画面',
         'setting.advanced': '高级',
@@ -88,6 +89,7 @@ window.__ModuleLoader__.load({
         'setting.fps': '录制帧率',
         'setting.format': '录制容器',
         'setting.encoder': '视频编码器',
+        'setting.encoderQuality': '录制画质（1–100，越高越清晰、文件越大）',
         'setting.unmute': '开始录制时自动打开游戏音频',
         'setting.monitorAudio': '录制时同时监听游戏声音（从 Mac 扬声器/耳机输出）',
         'setting.keepAwake': '录制时阻止电脑熄屏 / 睡眠',
@@ -111,6 +113,10 @@ window.__ModuleLoader__.load({
         'session.episode': '集数',
         'session.folder': '文件会保存在',
         'upload.progress': '上传进度',
+        'toast.uploaded': '已上传到 YouTube',
+        'toast.openStudio': '打开 YouTube Studio',
+        'toast.watch': '观看视频',
+        'toast.close': '关闭',
         'unit.mb': 'MB',
         'unit.min': '分钟',
       },
@@ -156,19 +162,20 @@ window.__ModuleLoader__.load({
         'action.connectYouTube': 'Connect YouTube',
         'action.disconnect': 'Disconnect',
         'action.retry': 'Retry',
-        'action.uploadNow': 'Upload now',
+        'action.uploadNow': 'Confirm upload',
         'action.remove': 'Remove',
         'action.cancelUpload': 'Cancel upload',
         'action.reveal': 'Show in Finder',
         'action.loadPlaylists': 'Load playlists',
         'queue.empty': 'No finished recordings yet. Stop a recording and it appears here.',
         'queue.finalizing': 'Finalizing',
-        'queue.queued': 'Queued',
+        'queue.queued': 'Awaiting confirmation',
         'queue.uploading': 'Uploading',
         'queue.done': 'Uploaded',
         'queue.error': 'Failed',
         'queue.canceled': 'Canceled',
         'queue.openOnYouTube': 'Open on YouTube',
+        'queue.openInStudio': 'Open in Studio',
         'setting.upload': 'Upload',
         'setting.obs': 'Video',
         'setting.advanced': 'Advanced',
@@ -189,6 +196,7 @@ window.__ModuleLoader__.load({
         'setting.fps': 'Frame rate',
         'setting.format': 'Container',
         'setting.encoder': 'Video encoder',
+        'setting.encoderQuality': 'Recording quality (1–100; higher = better/larger)',
         'setting.unmute': 'Unmute game audio when recording starts',
         'setting.monitorAudio': 'Monitor game audio through the Mac while recording',
         'setting.keepAwake': 'Keep the Mac awake while recording',
@@ -212,6 +220,10 @@ window.__ModuleLoader__.load({
         'session.episode': 'Episode',
         'session.folder': 'Saved to',
         'upload.progress': 'Upload progress',
+        'toast.uploaded': 'Uploaded to YouTube',
+        'toast.openStudio': 'Open YouTube Studio',
+        'toast.watch': 'Watch video',
+        'toast.close': 'Close',
         'unit.mb': 'MB',
         'unit.min': 'min',
       },
@@ -335,11 +347,86 @@ window.__ModuleLoader__.load({
           item.status === 'uploading' ? h(Progress, { percent: item.percent }) : null),
         h('div', { className: 'pr-queue-actions' },
           item.status === 'done' && item.url ? h('a', { className: 'pr-link', href: item.url, target: '_blank', rel: 'noreferrer' }, t('queue.openOnYouTube')) : null,
+          item.status === 'done' && item.videoId ? h('a', { className: 'pr-link', href: `https://studio.youtube.com/video/${item.videoId}/edit`, target: '_blank', rel: 'noreferrer' }, t('queue.openInStudio')) : null,
           item.status === 'error' ? h(Button, { variant: 'primary', icon: 'upload', onClick: () => onRetry(item), disabled: busy }, t('action.retry')) : null,
           item.status === 'queued' || item.status === 'canceled' ? h(Button, { icon: 'upload', onClick: () => onUploadNow(item), disabled: busy }, t('action.uploadNow')) : null,
           item.status === 'uploading' ? h(Button, { onClick: onCancel, disabled: busy }, t('action.cancelUpload')) : null,
           item.filePath ? h(Button, { onClick: () => onReveal(item), disabled: busy }, t('action.reveal')) : null,
           item.status !== 'uploading' ? h(Button, { variant: 'ghost', onClick: () => onRemove(item), disabled: busy }, t('action.remove')) : null));
+    }
+
+    /* ------------------------------------------------------------------ */
+    /* upload toast (top-right overlay inside DSH)                        */
+    /* ------------------------------------------------------------------ */
+
+    const TOAST_CSS = `
+.pr-toast{position:fixed;top:18px;right:18px;z-index:9999;pointer-events:auto;width:min(360px,calc(100vw - 36px));padding:14px 16px;border-radius:14px;border:1px solid var(--dsw-alias-border-l1);background:var(--dsw-alias-bg-overlay,var(--dsw-alias-bg-layer-1));box-shadow:0 12px 40px rgba(0,0,0,.28);color:var(--dsw-alias-label-primary);font-size:12.5px;line-height:1.5;display:flex;flex-direction:column;gap:10px}
+.pr-toast-head{display:flex;align-items:flex-start;justify-content:space-between;gap:10px}
+.pr-toast-title{font-size:13px;font-weight:600}
+.pr-toast-sub{font-size:11px;color:var(--dsw-alias-label-secondary);margin-top:2px;word-break:break-all}
+.pr-toast-actions{display:flex;gap:8px;flex-wrap:wrap}
+.pr-toast-btn{appearance:none;display:inline-flex;align-items:center;gap:5px;height:28px;padding:0 10px;border-radius:8px;border:1px solid var(--dsw-alias-border-l1);background:var(--dsw-alias-bg-layer-1);color:var(--dsw-alias-label-primary);font:inherit;font-size:11.5px;font-weight:550;cursor:pointer;text-decoration:none}
+.pr-toast-btn:hover{background:var(--dsw-alias-bg-layer-2)}
+.pr-toast-btn[data-primary='true']{border-color:transparent;background:var(--dsw-alias-brand-primary,#4d6bfe);color:#fff}
+.pr-toast-close{appearance:none;border:0;background:transparent;color:var(--dsw-alias-label-secondary);font-size:16px;line-height:1;cursor:pointer;padding:0 2px}
+`
+
+    function UploadToast({ t }) {
+      const [item, setItem] = useState(null)
+      const [channelId, setChannelId] = useState('')
+      const timer = useRef(null)
+      useEffect(() => {
+        let cancelled = false
+        let poll = null
+        let first = true
+        const hide = () => { if (timer.current !== null) { clearTimeout(timer.current); timer.current = null } }
+        const tick = async () => {
+          if (cancelled) return
+          if (document.visibilityState === 'visible') {
+            try {
+              const data = await request('/state')
+              if (cancelled) return
+              setChannelId(data?.youtube?.channelId ?? '')
+              const latest = (data?.queue ?? []).find(entry => entry.status === 'done' && entry.videoId)
+              if (latest) {
+                const key = 'ps5-recorder-last-upload'
+                const seen = window.localStorage.getItem(key)
+                if (seen === null && first) {
+                  window.localStorage.setItem(key, latest.id)
+                } else if (seen !== latest.id) {
+                  window.localStorage.setItem(key, latest.id)
+                  setItem(latest)
+                  hide()
+                  timer.current = setTimeout(() => { setItem(null) }, 30000)
+                }
+              }
+            } catch { /* ignore */ }
+          }
+          first = false
+          if (!cancelled) poll = setTimeout(tick, 4000)
+        }
+        void tick()
+        return () => {
+          cancelled = true
+          hide()
+          if (poll !== null) clearTimeout(poll)
+        }
+      }, [])
+
+      if (!item) return null
+      const studio = channelId
+        ? `https://studio.youtube.com/channel/${channelId}/videos/upload?filter=%5B%5D&sort=%7B%22columnType%22%3A%22date%22%2C%22sortOrder%22%3A%22DESCENDING%22%7D`
+        : 'https://studio.youtube.com'
+      return h('div', { className: 'pr-toast', role: 'status' },
+        h('style', null, TOAST_CSS),
+        h('div', { className: 'pr-toast-head' },
+          h('div', null,
+            h('div', { className: 'pr-toast-title' }, t('toast.uploaded')),
+            h('div', { className: 'pr-toast-sub' }, item.title)),
+          h('button', { type: 'button', className: 'pr-toast-close', 'aria-label': t('toast.close'), onClick: () => setItem(null) }, '×')),
+        h('div', { className: 'pr-toast-actions' },
+          h('a', { className: 'pr-toast-btn', 'data-primary': 'true', href: studio, target: '_blank', rel: 'noreferrer' }, t('toast.openStudio')),
+          item.url ? h('a', { className: 'pr-toast-btn', href: item.url, target: '_blank', rel: 'noreferrer' }, t('toast.watch')) : null))
     }
 
     /* ------------------------------------------------------------------ */
@@ -730,6 +817,11 @@ window.__ModuleLoader__.load({
                     ['com.apple.videotoolbox.videoencoder.ave.hevc', 'Apple VT HEVC（硬件）'],
                     ['obs_x264', 'x264'],
                   ].map(([value, label]) => h('option', { key: value, value }, label)))),
+                h(Field, { label: t('setting.encoderQuality') },
+                  h('input', {
+                    className: 'pr-input', type: 'number', min: 1, max: 100, step: 5, value: draft?.encoderQuality ?? 85,
+                    onChange: event => updateDraft('encoderQuality', Math.max(1, Math.min(100, Number(event.target.value) || 85))),
+                  })),
                 h(Field, { label: t('capture.label'), wide: true },
                   h('div', { className: 'pr-row' },
                     h('select', {
@@ -928,6 +1020,10 @@ textarea.pr-input{height:auto;padding:8px 10px;resize:vertical;line-height:1.5}
         name: 'sidebar.panellist', id: PANEL_KEY, order: 22,
         label: () => t('panel.label'),
       }, Glyph)));
+
+      ctx.effect(() => ctx.slots.inject('shell.overlay', () => ctx.slots.register({
+        name: 'shell.overlay', id: 'ps5-recorder-upload-toast', order: 90,
+      }, UploadToast)));
     }
 
     return { inject: ['slots', 'locale'], apply };

@@ -1,6 +1,8 @@
 /** Spin the Host half up with a fake cordis context and exercise the HTTP API. */
 import http from 'node:http'
-import { apply } from '../index.js'
+import { homedir } from 'node:os'
+import { join } from 'node:path'
+import { apply } from '../ps5-recorder/index.js'
 
 const routes = []
 const ctx = {
@@ -46,7 +48,7 @@ async function call(path, body) {
 
 await call('/state')
 await call('/settings', { tags: ['GTA VI', 'PS5'], separator: ' | ', episodePadding: 2 })
-await call('/settings', { privacyStatus: 'unlisted', recordingFolder: '/Users/oliverli/Movies/PS5' })
+await call('/settings', { privacyStatus: 'unlisted', recordingFolder: join(homedir(), 'Movies', 'PS5') })
 await call('/prepare')
 await call('/state')
 await call('/devices')

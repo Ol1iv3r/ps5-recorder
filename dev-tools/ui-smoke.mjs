@@ -7,11 +7,12 @@
  */
 import { readFile } from 'node:fs/promises'
 import vm from 'node:vm'
+import { fileURLToPath } from 'node:url'
 import { JSDOM } from 'jsdom'
 import React from 'react'
 import { createRoot } from 'react-dom/client'
 
-const CLIENT = '/Users/oliverli/Desktop/DeepSeek/PS5录制上传方案/ps5-recorder/client.js'
+const CLIENT = fileURLToPath(new URL('../ps5-recorder/client.js', import.meta.url))
 const liveState = await (await fetch('http://127.0.0.1:50891/ps5-recorder-api/state')).json()
 liveState.settings.lastGame = ''
 liveState.queue = []

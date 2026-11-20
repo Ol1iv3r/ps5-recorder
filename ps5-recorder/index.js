@@ -11,7 +11,7 @@
  */
 import { execFile, spawn } from 'node:child_process'
 import { existsSync } from 'node:fs'
-import { mkdir } from 'node:fs/promises'
+import { mkdir, readFile, writeFile } from 'node:fs/promises'
 import { homedir } from 'node:os'
 import { join } from 'node:path'
 import {
@@ -62,6 +62,7 @@ function publicState(ctx) {
     youtube: {
       connected: youtube?.connected ?? false,
       channel: youtube?.channel ?? '',
+      channelId: youtube?.channelId ?? '',
       pending: youtube?.pending ?? false,
       error: youtube?.error ?? '',
     },
@@ -142,7 +143,7 @@ export function apply(ctx, rawConfig = {}) {
   /* ------------------------------------------------------------------ */
 
   async function ensureChannelName() {
-    if (!runtime.youtube.connected || runtime.youtube.channel || runtime.channelFetching) return
+    if (!runtime.youtube.connected || (runtime.youtube.channel && runtime.youtube.channelId) || runtime.channelFetching) return
     if (!runtime.state?.settings.googleClientId) return
     runtime.channelFetching = true
     try {
@@ -157,6 +158,7 @@ export function apply(ctx, rawConfig = {}) {
       })
       const channel = await client.api('/channels?part=snippet&mine=true')
       runtime.youtube.channel = channel?.items?.[0]?.snippet?.title ?? ''
+      runtime.youtube.channelId = channel?.items?.[0]?.id ?? runtime.youtube.channelId ?? ''
       if (!runtime.youtube.channel) runtime.youtube.channel = '(未命名频道)'
     } catch (error) {
       log('读取频道名失败', error.message)
@@ -331,12 +333,37 @@ export function apply(ctx, rawConfig = {}) {
     return { devices, current: settings?.inputSettings?.device_id ?? '', inputName: input.inputName }
   }
 
+  /**
+   * Raise the OBS hardware encoder quality (recordEncoder.json) so recordings
+   * keep the best quality OBS can deliver for the chosen encoder. OBS reads
+   * this file when an output starts, so it applies to the next recording.
+   */
+  async function applyEncoderQuality() {
+    const quality = Math.max(1, Math.min(100, Math.round(Number(runtime.state.settings.encoderQuality) || 85)))
+    try {
+      const base = join(homedir(), 'Library', 'Application Support', 'obs-studio')
+      const userIni = await readFile(join(base, 'user.ini'), 'utf8').catch(() => '')
+      const profileDir = /\[Basic\][\s\S]*?ProfileDir=([^\r\n]+)/.exec(userIni)?.[1]?.trim()
+      if (!profileDir) return
+      const file = join(base, 'basic', 'profiles', profileDir, 'recordEncoder.json')
+      let data = {}
+      try { data = JSON.parse(await readFile(file, 'utf8')) } catch { data = {} }
+      data.rate_control = data.rate_control || 'CRF'
+      data.quality = quality
+      data.bitrate = data.bitrate || 25000
+      await writeFile(file, JSON.stringify(data))
+    } catch (error) {
+      log('写入编码质量失败', error.message)
+    }
+  }
+
   async function prepareObs() {
     const obs = await ensureObs(true)
     if (!obs.client?.identified) throw new Error('OBS 未连接')
     const settings = runtime.state.settings
     const client = obs.client
     await mkdir(settings.recordingFolder, { recursive: true }).catch(() => {})
+    await applyEncoderQuality()
     await client.setRecordingTarget(settings.recordingFolder, settings.videoFormat, settings.videoEncoder)
     const video = await client.getVideoSettings().catch(() => null)
     const fps = Math.max(1, Math.round(Number(settings.fps) || 60))
@@ -637,7 +664,7 @@ export function apply(ctx, rawConfig = {}) {
         filePath: result.filePath,
       }
       await save()
-      notify(`已就绪：${session.title}`, item.warning || '文件已整理，等待上传')
+      notify(`已就绪：${session.title}`, item.warning || '文件已整理，等待你确认后上传')
       if (settings.autoUpload) {
         await sleep(Math.max(0, settings.uploadDelaySeconds) * 1000)
         void processQueue()
@@ -722,7 +749,7 @@ export function apply(ctx, rawConfig = {}) {
       if (video.thumbnailError && next.thumbPath && next.videoId) {
         scheduleThumbnailRetry(next, 60_000, 3)
       }
-      notify(`上传完成：${next.title}`, video.url || '已上传到 YouTube')
+      notify(`上传完成：${next.title}`, video.url || '已上传到 YouTube', studioUrl())
     } catch (error) {
       next.status = error.name === 'AbortError' ? 'canceled' : 'error'
       next.error = error.message
@@ -761,6 +788,7 @@ export function apply(ctx, rawConfig = {}) {
         runtime.youtube.connected = true
         const channel = await flow.api('/channels?part=snippet&mine=true').catch(() => null)
         runtime.youtube.channel = channel?.items?.[0]?.snippet?.title ?? ''
+        runtime.youtube.channelId = channel?.items?.[0]?.id ?? runtime.youtube.channelId ?? ''
         notify('YouTube 已连接', runtime.youtube.channel || '授权成功')
         void processQueue()
       })
@@ -815,9 +843,35 @@ export function apply(ctx, rawConfig = {}) {
     timer.unref?.()
   }
 
-  function notify(title, body) {
+  const STUDIO_FALLBACK = 'https://studio.youtube.com'
+  const TERMINAL_NOTIFIER = ['/opt/homebrew/bin/terminal-notifier', '/usr/local/bin/terminal-notifier']
+
+  function studioUrl() {
+    const channelId = runtime.youtube?.channelId
+    if (!channelId) return STUDIO_FALLBACK
+    return `https://studio.youtube.com/channel/${channelId}/videos/upload?filter=%5B%5D&sort=%7B%22columnType%22%3A%22date%22%2C%22sortOrder%22%3A%22DESCENDING%22%7D`
+  }
+
+  /**
+   * macOS banner. With terminal-notifier installed the banner is clickable and
+   * opens `openUrl`; otherwise fall back to osascript (banner only).
+   */
+  function notify(title, body, openUrl = '') {
     if (!runtime.state?.settings) return
     const safe = text => String(text).replace(/["\\]/g, ' ').slice(0, 200)
+    const notifier = TERMINAL_NOTIFIER.find(candidate => existsSync(candidate))
+    if (notifier) {
+      const args = ['-title', safe(title), '-message', safe(body), '-group', 'ps5-recorder']
+      if (openUrl) args.push('-open', openUrl)
+      execFile(notifier, args, (error) => {
+        if (error) {
+          execFile('/usr/bin/osascript', ['-e',
+            `display notification "${safe(body)}" with title "${safe(title)}"`,
+          ], () => {})
+        }
+      })
+      return
+    }
     execFile('/usr/bin/osascript', ['-e',
       `display notification "${safe(body)}" with title "${safe(title)}"`,
     ], () => {})
@@ -869,7 +923,7 @@ export function apply(ctx, rawConfig = {}) {
       if (req.method === 'GET' && (path === '/' || path === '/state')) {
         // Refresh on demand so a button press is reflected by the next poll
         // instead of waiting for the background tick.
-        if (runtime.youtube.connected && !runtime.youtube.channel) await ensureChannelName()
+        if (runtime.youtube.connected && (!runtime.youtube.channel || !runtime.youtube.channelId)) await ensureChannelName()
         if (runtime.obs?.client?.identified && Date.now() - (runtime.lastRefresh ?? 0) > 700) {
           runtime.lastRefresh = Date.now()
           await refreshObsDetails().catch(() => {})

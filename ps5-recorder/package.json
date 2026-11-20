@@ -2,7 +2,7 @@
   "name": "@local/dsh-ps5-recorder",
   "version": "0.1.0",
   "private": true,
-  "description": "PS5 一键录制：控制 OBS 开始/暂停/停止，停止后自动按「游戏 | EP 01」整理成片并上传到 YouTube。",
+  "description": "PS5 一键录制：控制 OBS 开始/暂停/停止，停止后自动按「游戏 | EP 01」整理成片，确认后上传到 YouTube。",
   "type": "module",
   "exports": {
     ".": "./index.js",
