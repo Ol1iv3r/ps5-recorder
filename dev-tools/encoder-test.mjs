@@ -1,0 +1,10 @@
+import { connectOBS, sleep } from '../lib/obs.mjs'
+const { client } = await connectOBS({ timeoutMs: 20000 })
+await client.setProfileParameter('AdvOut', 'RecEncoder', 'com.apple.videotoolbox.videoencoder.ave.avc')
+console.log('readback right after set:', await client.getProfileParameter('AdvOut', 'RecEncoder'))
+await client.startRecord()
+await sleep(800)
+await client.stopRecord()
+await sleep(800)
+console.log('readback after stop:', await client.getProfileParameter('AdvOut', 'RecEncoder'))
+await client.close()

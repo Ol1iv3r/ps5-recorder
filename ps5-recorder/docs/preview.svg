@@ -1,0 +1,31 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 300" width="640" height="300" role="img" aria-label="PS5 capture card flow: console, capture card, recording laptop, upload to a video platform">
+  <rect width="640" height="300" rx="18" fill="#10141d"/>
+  <rect x="26" y="70" width="88" height="150" rx="12" fill="#1a2030" stroke="#2c3546"/>
+  <rect x="40" y="92" width="60" height="10" rx="5" fill="#39435a"/>
+  <rect x="40" y="112" width="60" height="10" rx="5" fill="#39435a"/>
+  <circle cx="70" cy="190" r="12" fill="none" stroke="#5b6b8c" stroke-width="3"/>
+  <rect x="140" y="112" width="82" height="66" rx="10" fill="#1a2030" stroke="#2c3546"/>
+  <rect x="152" y="128" width="26" height="14" rx="3" fill="#39435a"/>
+  <rect x="184" y="128" width="26" height="14" rx="3" fill="#39435a"/>
+  <circle cx="181" cy="162" r="6" fill="#ff3b30"/>
+  <path d="M118 130h18" stroke="#4d6bfe" stroke-width="3" stroke-linecap="round"/>
+  <path d="M118 160h18" stroke="#4d6bfe" stroke-width="3" stroke-linecap="round"/>
+  <path d="M228 145h38" stroke="#8d96a8" stroke-width="3" stroke-linecap="round"/>
+  <path d="M258 137l10 8-10 8" fill="none" stroke="#8d96a8" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
+  <rect x="272" y="76" width="158" height="138" rx="12" fill="#1a2030" stroke="#2c3546"/>
+  <rect x="286" y="92" width="130" height="86" rx="6" fill="#0d111a" stroke="#2c3546"/>
+  <circle cx="308" cy="112" r="7" fill="#ff3b30"/>
+  <rect x="324" y="106" width="76" height="10" rx="5" fill="#39435a"/>
+  <rect x="324" y="126" width="54" height="8" rx="4" fill="#2b3444"/>
+  <rect x="286" y="188" width="130" height="14" rx="7" fill="#232b3c"/>
+  <rect x="286" y="188" width="86" height="14" rx="7" fill="#4d6bfe"/>
+  <path d="M436 145h34" stroke="#8d96a8" stroke-width="3" stroke-linecap="round"/>
+  <path d="M462 137l10 8-10 8" fill="none" stroke="#8d96a8" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
+  <rect x="478" y="96" width="136" height="98" rx="14" fill="#1a2030" stroke="#2c3546"/>
+  <rect x="500" y="118" width="92" height="56" rx="14" fill="#2b1b1e" stroke="#5a2f33"/>
+  <path d="M534 132l24 14-24 14z" fill="#ff3b30"/>
+  <path d="M546 214v22" stroke="#59c37b" stroke-width="4" stroke-linecap="round"/>
+  <path d="M538 229l8 8 8-8" fill="none" stroke="#59c37b" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/>
+  <rect x="502" y="240" width="88" height="8" rx="4" fill="#232b3c"/>
+  <rect x="502" y="240" width="60" height="8" rx="4" fill="#59c37b"/>
+</svg>

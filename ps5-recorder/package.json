@@ -1,0 +1,35 @@
+{
+  "name": "@local/dsh-ps5-recorder",
+  "version": "0.1.0",
+  "private": true,
+  "description": "PS5 一键录制：控制 OBS 开始/暂停/停止，停止后自动按「游戏 | EP 01」整理成片并上传到 YouTube。",
+  "type": "module",
+  "exports": {
+    ".": "./index.js",
+    "./client": "./client.js",
+    "./locale/*.json": "./locale/*.json",
+    "./icon": "./icon.svg"
+  },
+  "files": [
+    "index.js",
+    "client.js",
+    "lib",
+    "cordis.patch.yml",
+    "locale/*.json",
+    "docs",
+    "icon.svg",
+    "README.md"
+  ],
+  "dsh": {
+    "bundle": {
+      "patch": "./cordis.patch.yml"
+    },
+    "client": {
+      "platform": "web",
+      "immediately": true,
+      "inject": [
+        "@deepseek-ai/dsh-client-ui-sidebar"
+      ]
+    }
+  }
+}

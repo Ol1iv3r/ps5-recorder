@@ -1,0 +1,24 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256" width="256" height="256" role="img" aria-label="PS5 Recorder">
+  <defs>
+    <linearGradient id="bg" x1="24" y1="18" x2="232" y2="240" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#1b2230"/>
+      <stop offset="1" stop-color="#0a0d14"/>
+    </linearGradient>
+    <linearGradient id="lens" x1="70" y1="88" x2="186" y2="190" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#3f6bff"/>
+      <stop offset="1" stop-color="#2b3fd6"/>
+    </linearGradient>
+    <linearGradient id="arrow" x1="128" y1="140" x2="128" y2="214" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#ffffff"/>
+      <stop offset="1" stop-color="#c9d4ff"/>
+    </linearGradient>
+  </defs>
+  <rect width="256" height="256" rx="58" fill="url(#bg)"/>
+  <rect x="24" y="58" width="150" height="112" rx="26" fill="none" stroke="#e8ecf7" stroke-width="11"/>
+  <path d="M174 96l44-26c4-2 8 0 8 6v74c0 6-4 8-8 6l-44-26z" fill="none" stroke="#e8ecf7" stroke-width="11" stroke-linejoin="round"/>
+  <circle cx="99" cy="114" r="27" fill="url(#lens)"/>
+  <circle cx="99" cy="114" r="10" fill="#0a0d14"/>
+  <circle cx="192" cy="66" r="13" fill="#ff3b30"/>
+  <circle cx="192" cy="66" r="5.5" fill="#ffd6d3"/>
+  <path d="M128 214v-46m0 0l-19 19m19-19l19 19" fill="none" stroke="url(#arrow)" stroke-width="12" stroke-linecap="round" stroke-linejoin="round"/>
+</svg>

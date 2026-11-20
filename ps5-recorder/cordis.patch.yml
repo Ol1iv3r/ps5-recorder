@@ -1,0 +1,6 @@
+# PS5 录制 + YouTube 自动上传：Host 半注册 webServer 接口，客户端在侧边栏 / 主面板里显示控制台。
+- insert:
+    - id: ps5-recorder
+      name: '@local/dsh-ps5-recorder'
+      config:
+        enabled: true

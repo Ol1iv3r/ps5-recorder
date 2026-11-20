@@ -1,0 +1,6 @@
+{
+  "meta": {
+    "title": "PS5 录制",
+    "description": "在侧边栏「PS5 录制」里一键完成「录 PS5 → 整理成片 → 上传 YouTube」：填游戏英文名后点「开始录制」，插件自动启动 OBS 并录采集卡画面（1080p60、H.264、MKV），录制中可「暂停 / 继续」，点「停止」后自动把 MKV 无损转成 MP4、按「游戏 | EP 号」命名（如 GTA VI | EP 03）、抽帧生成封面，并上传到你自己频道的 YouTube 视频，标题、简介、标签、可见性、播放列表、集数递增都可在设置里调整；上传支持续传和失败重试，队列在重启后仍保留。使用前需要：OBS 已安装且能预览采集卡、已安装 ffmpeg（brew install ffmpeg）、PS5 关闭 HDCP（设置 › 系统 › HDMI › 启用 HDCP 设为关闭），并第一次点一次「准备 OBS」（会调整 OBS 的录制路径/容器/编码器/帧率；若 OBS 正在运行，请退出后重开一次让 WebSocket 服务器生效）。自动上传还需要一次性创建免费的 Google Cloud OAuth「桌面应用」客户端：建议用 Google 2026 新增的 Personal（个人）模式以避免 7 天令牌过期，启用 YouTube Data API v3，把客户端 ID 和 Secret 填进「设置 › 上传」再点「连接 YouTube」授权；插件申请 youtube.upload 与 youtube 权限，用于上传和加入播放列表。成片保存在 ~/Movies/PS5（可改），插件状态在 ~/.dsh/ps5-recorder/state.json，OAuth 令牌在 ~/.dsh/ps5-recorder/youtube-tokens.json（权限 0600，只存在本机）；对外接口仅监听本机并校验 Origin，不会把密钥返回给页面。上传额度为每个 Cloud 项目每天 100 次 videos.insert。限制：仅 macOS；需要采集卡有信号；不会自动删除成片，也不替你填写「合成内容 / 付费推广」等 YouTube 声明字段；关闭插件后按钮与自动上传消失（OBS 里的录制设置会保留）。"
+  }
+}

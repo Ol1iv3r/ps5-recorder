@@ -1,0 +1,29 @@
+# macOS
+.DS_Store
+.AppleDouble
+.LSOverride
+
+# 依赖 / 构建产物
+node_modules/
+.pnpm-store/
+dist/
+build/
+*.log
+
+# 本机运行时数据（绝不要提交）
+.env
+.env.*
+*.pem
+*.key
+state.json
+youtube-tokens.json
+credentials*
+*.sqlite
+*.db
+
+# 录制成片 / 临时文件
+*.mp4
+*.mkv
+*.mov
+*.part
+*.tmp
